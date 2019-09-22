@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
@@ -32,11 +33,11 @@ public class CommonsHandlerAdvice implements MessageSourceAware {
         String message = source.getMessage("Username.notFound", new Object[]{ex.getMessage()}, "用户不存在", locale);
         return ResponseEntity
                 .status(HttpStatus.UNAUTHORIZED)
-                .body(message);
+                .body(Collections.singleton(message));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public HttpEntity<?> handleMethodArgumentNotValidException(WebRequest request, MethodArgumentNotValidException ex) {
+    public HttpEntity<?> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
         List<String> messages = ex.getBindingResult().getAllErrors()
                 .stream()
                 .map(DefaultMessageSourceResolvable::getDefaultMessage)

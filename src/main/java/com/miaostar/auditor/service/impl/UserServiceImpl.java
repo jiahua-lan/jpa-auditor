@@ -11,6 +11,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
@@ -36,6 +37,9 @@ public class UserServiceImpl implements UserDetailsService {
                             .flatMap(Collection::stream)
                             .map(Resource::getCode)
                             .collect(Collectors.joining(",")).split(",");
+
+                    log.debug("当前用户可访问如下资源{}", Arrays.toString(split));
+
                     return User.builder()
                             .password(user.getPassword())
                             .username(user.getName())

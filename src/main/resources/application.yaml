@@ -8,3 +8,6 @@ spring:
 info:
   token:
     signingKey: "ASSESS"
+logging:
+  level:
+    com.miaostar.auditor.service: debug

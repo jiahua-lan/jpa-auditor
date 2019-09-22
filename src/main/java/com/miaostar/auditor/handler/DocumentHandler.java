@@ -48,6 +48,7 @@ public class DocumentHandler {
         return ResponseEntity.ok(list);
     }
 
+    @PreAuthorize("hasAuthority('D0004')")
     @PutMapping(name = "修改文档内容", value = "/{id}")
     public HttpEntity<?> replace(@Valid @RequestBody Document document, @PathVariable("id") Long id) {
         Optional<Document> optional = documentRepository.findById(id)
@@ -59,6 +60,7 @@ public class DocumentHandler {
         return ResponseEntity.of(optional);
     }
 
+    @PreAuthorize("hasAuthority('D0005')")
     @DeleteMapping(name = "删除文档", value = "/{id}")
     public HttpEntity<?> delete(@PathVariable("id") Long id) {
         documentRepository.deleteById(id);
