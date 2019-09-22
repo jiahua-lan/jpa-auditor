@@ -10,8 +10,8 @@ import javax.persistence.ManyToMany;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-@EqualsAndHashCode(callSuper = true, exclude = {"roles"})
-@ToString(exclude = {"roles"})
+@EqualsAndHashCode(callSuper = true, exclude = {"roles", "clients"})
+@ToString(exclude = {"roles", "clients"})
 @Data
 @Entity
 public class Resource extends AbstractPersistable<Long> {
@@ -28,4 +28,7 @@ public class Resource extends AbstractPersistable<Long> {
 
     @ManyToMany(mappedBy = "resources")
     private Set<Role> roles = new LinkedHashSet<>();
+
+    @ManyToMany(mappedBy = "authorities")
+    private Set<Client> clients = new LinkedHashSet<>();
 }

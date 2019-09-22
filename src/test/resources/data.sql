@@ -4,4 +4,7 @@ INSERT INTO role (id, name,code) VALUES (2, 'ADMIN','ADMIN');
 
 INSERT INTO user_roles (users_id, roles_id) VALUES (1, 2);
 
-ALTER SEQUENCE HIBERNATE_SEQUENCE RESTART WITH 3;
+insert into client (authorized_grant_types, client_id, scope, secret, id)
+values ('password', 'client', 'all', '$2a$10$mU84ca7/hZp0uEPNKZskCeDjy3e8IziCk9LHvne3egPaHuyuGQ1Cm', 3);
+
+ALTER SEQUENCE HIBERNATE_SEQUENCE RESTART WITH 4;
