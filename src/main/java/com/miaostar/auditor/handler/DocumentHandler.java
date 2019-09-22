@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.net.URI;
 import java.util.List;
 import java.util.Optional;
@@ -24,7 +25,7 @@ public class DocumentHandler {
 
     @PreAuthorize("hasAuthority('D0001')")
     @PostMapping(name = "创建文档")
-    public HttpEntity<?> create(@RequestBody Document document) {
+    public HttpEntity<?> create(@Valid @RequestBody Document document) {
         Document entity = documentRepository.save(document);
         return ResponseEntity
                 .created(URI.create("/document/" + document.getId()))
@@ -48,7 +49,7 @@ public class DocumentHandler {
     }
 
     @PutMapping(name = "修改文档内容", value = "/{id}")
-    public HttpEntity<?> replace(@RequestBody Document document, @PathVariable("id") Long id) {
+    public HttpEntity<?> replace(@Valid @RequestBody Document document, @PathVariable("id") Long id) {
         Optional<Document> optional = documentRepository.findById(id)
                 .map(doc -> {
                     doc.setContent(document.getContent());

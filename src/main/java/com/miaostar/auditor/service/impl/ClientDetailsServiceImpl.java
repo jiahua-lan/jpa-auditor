@@ -2,6 +2,7 @@ package com.miaostar.auditor.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Primary;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.provider.ClientDetails;
 import org.springframework.security.oauth2.provider.ClientDetailsService;
 import org.springframework.security.oauth2.provider.ClientRegistrationException;
@@ -16,6 +17,13 @@ import java.util.Collections;
 @Primary
 @Transactional
 public class ClientDetailsServiceImpl implements ClientDetailsService {
+
+    private PasswordEncoder encoder;
+
+    public ClientDetailsServiceImpl(PasswordEncoder encoder) {
+        this.encoder = encoder;
+    }
+
     @Override
     public ClientDetails loadClientByClientId(String clientId) throws ClientRegistrationException {
         BaseClientDetails details = new BaseClientDetails();

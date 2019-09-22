@@ -11,6 +11,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -70,6 +71,25 @@ public class DocumentHandlerTest {
                 .andDo(print())
                 .andExpect(status().is2xxSuccessful())
                 .andExpect(jsonPath("$.author").isNotEmpty());
+
+    }
+
+    @Test
+    public void createError() throws Exception {
+        String token = getToken();
+        Document document = new Document();
+        document.setContent("TEST_CONTENT");
+
+        byte[] bytes = mapper.writeValueAsBytes(document);
+
+        MockHttpServletRequestBuilder post = post("/documents")
+                .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(bytes);
+
+        mock.perform(post)
+                .andDo(print())
+                .andExpect(status().isBadRequest());
 
     }
 

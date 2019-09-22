@@ -11,7 +11,6 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
@@ -26,6 +25,7 @@ public class UserServiceImpl implements UserDetailsService {
         this.userRepository = userRepository;
     }
 
+
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         return userRepository.findByName(username)
@@ -36,7 +36,6 @@ public class UserServiceImpl implements UserDetailsService {
                             .flatMap(Collection::stream)
                             .map(Resource::getCode)
                             .collect(Collectors.joining(",")).split(",");
-                    log.info("{}", Arrays.toString(split));
                     return User.builder()
                             .password(user.getPassword())
                             .username(user.getName())

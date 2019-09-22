@@ -10,6 +10,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import javax.persistence.Entity;
 import javax.persistence.EntityListeners;
 import javax.persistence.ManyToOne;
+import javax.validation.constraints.NotEmpty;
 import java.time.LocalDateTime;
 
 @EqualsAndHashCode(callSuper = true)
@@ -18,6 +19,7 @@ import java.time.LocalDateTime;
 @EntityListeners(AuditingEntityListener.class)
 public class Document extends AbstractPersistable<Long> {
 
+    @NotEmpty(message = "{document.title.NotEmpty}")
     private String title;
 
     private String content;
