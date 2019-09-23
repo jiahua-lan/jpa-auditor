@@ -7,6 +7,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.oauth2.provider.ClientRegistrationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -31,6 +32,15 @@ public class CommonsHandlerAdvice implements MessageSourceAware {
     public HttpEntity<?> handleUsernameNotFoundException(WebRequest request, UsernameNotFoundException ex) {
         Locale locale = request.getLocale();
         String message = source.getMessage("Username.notFound", new Object[]{ex.getMessage()}, "用户不存在", locale);
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(Collections.singleton(message));
+    }
+
+    @ExceptionHandler(ClientRegistrationException.class)
+    public HttpEntity<?> handleClientRegistrationException(WebRequest request, ClientRegistrationException e) {
+        Locale locale = request.getLocale();
+        String message = source.getMessage("Client.registration.Exception", new Object[]{e.getMessage()}, "非法客户端", locale);
         return ResponseEntity
                 .status(HttpStatus.UNAUTHORIZED)
                 .body(Collections.singleton(message));

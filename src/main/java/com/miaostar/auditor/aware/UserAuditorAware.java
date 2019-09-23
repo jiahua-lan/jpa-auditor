@@ -29,7 +29,7 @@ public class UserAuditorAware implements AuditorAware<User> {
         return Optional.ofNullable(SecurityContextHolder.getContext())
                 .map(SecurityContext::getAuthentication)
                 .filter(Authentication::isAuthenticated)
-                .map(Authentication::getPrincipal)
+                .map(Authentication::getName)
                 .map(Object::toString)
                 .map(userRepository::findByName)
                 .flatMap(Function.identity());

@@ -1,0 +1,9 @@
+spring:
+  jpa:
+    show-sql: true
+info:
+  token:
+    signingKey: "ASSESS"
+logging:
+  level:
+    com.miaostar.auditor.service: debug

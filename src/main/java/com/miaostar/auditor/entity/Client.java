@@ -10,6 +10,7 @@ import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.EntityListeners;
 import javax.persistence.ManyToMany;
+import javax.validation.constraints.NotEmpty;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -19,8 +20,10 @@ import java.util.Set;
 @EntityListeners(AuditingEntityListener.class)
 public class Client extends AbstractAuditable<User, Long> {
 
+    @NotEmpty(message = "{client.clientId.NotEmpty}")
     private String clientId;
 
+    @NotEmpty(message = "{client.secret.NotEmpty}")
     private String secret;
 
     @Convert(converter = StringToSetConverter.class)
