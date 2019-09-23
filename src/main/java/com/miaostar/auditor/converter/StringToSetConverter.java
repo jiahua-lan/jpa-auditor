@@ -10,11 +10,13 @@ import java.util.stream.Collectors;
 public class StringToSetConverter implements AttributeConverter<Set<String>, String> {
     @Override
     public String convertToDatabaseColumn(Set<String> attribute) {
-        return String.join(",", attribute);
+        return (Objects.isNull(attribute) || attribute.isEmpty())
+                ? null : String.join(",", attribute);
     }
 
     @Override
     public Set<String> convertToEntityAttribute(String dbData) {
-        return Objects.isNull(dbData) ? Collections.emptySet() : Arrays.stream(dbData.split(",")).collect(Collectors.toSet());
+        return (Objects.isNull(dbData) || dbData.isEmpty())
+                ? Collections.emptySet() : Arrays.stream(dbData.split(",")).collect(Collectors.toSet());
     }
 }
