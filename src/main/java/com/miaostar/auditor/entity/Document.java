@@ -21,7 +21,7 @@ public class Document extends AbstractPersistable<Long> {
 
     @NotEmpty(message = "{document.title.NotEmpty}")
     private String title;
-
+    @NotEmpty(message = "{document.content.NotEmpty}")
     private String content;
 
     @CreatedBy

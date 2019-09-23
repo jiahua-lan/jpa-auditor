@@ -6,6 +6,7 @@ import org.springframework.data.jpa.domain.AbstractPersistable;
 
 import javax.persistence.Entity;
 import javax.persistence.ManyToMany;
+import javax.validation.constraints.NotEmpty;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -14,8 +15,10 @@ import java.util.Set;
 @Entity
 public class User extends AbstractPersistable<Long> {
 
+    @NotEmpty(message = "{user.name.NotEmpty}")
     private String name;
 
+    @NotEmpty(message = "{user.password.NotEmpty}")
     private String password;
 
     @ManyToMany
