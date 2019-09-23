@@ -96,13 +96,14 @@ public class RegisteredResourcesListener implements ApplicationListener<ContextR
                     return !resourceRepository.exists(example);
                 }).collect(Collectors.toSet());
 
-        log.debug(
-                "系统资源如下:{}",
-                resources.stream()
-                        .sorted(Comparator.comparing(Resource::getCode))
-                        .map(resource -> source.getMessage("Resource.Details", new Object[]{resource.getCode(), resource.getName()}, Locale.getDefault()))
-                        .collect(Collectors.joining(","))
-        );
+        if (log.isDebugEnabled()) {
+            String resourceInfos = resources.stream()
+                    .sorted(Comparator.comparing(Resource::getCode))
+                    .map(resource -> source.getMessage("Resource.Info", new Object[]{resource.getCode(), resource.getName()}, Locale.getDefault()))
+                    .collect(Collectors.joining(","));
+            String message = source.getMessage("System.Resources", new Object[]{resourceInfos}, Locale.getDefault());
+            log.debug(message);
+        }
 
         List<Resource> list = resourceRepository.saveAll(resources);
 

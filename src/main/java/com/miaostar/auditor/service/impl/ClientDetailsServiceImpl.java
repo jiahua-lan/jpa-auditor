@@ -56,13 +56,14 @@ public class ClientDetailsServiceImpl implements ClientDetailsService, MessageSo
                     .map(SimpleGrantedAuthority::new)
                     .collect(Collectors.toSet());
 
-            log.debug(
-                    "客户端可访问资源如下:{}",
-                    supplier.get()
-                            .sorted(Comparator.comparing(Resource::getCode))
-                            .map(resource -> source.getMessage("Resource.Details", new Object[]{resource.getCode(), resource.getName()}, Locale.getDefault()))
-                            .collect(Collectors.joining(","))
-            );
+            if (log.isDebugEnabled()) {
+                String collect = supplier.get()
+                        .sorted(Comparator.comparing(Resource::getCode))
+                        .map(resource -> source.getMessage("Resource.Info", new Object[]{resource.getCode(), resource.getName()}, Locale.getDefault()))
+                        .collect(Collectors.joining(","));
+                String message = source.getMessage("Client.access.resources", new Object[]{collect}, Locale.getDefault());
+                log.debug(message);
+            }
 
             BaseClientDetails details = new BaseClientDetails();
             details.setClientId(client.getClientId());
