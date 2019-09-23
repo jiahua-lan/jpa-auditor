@@ -5,6 +5,8 @@ import com.miaostar.auditor.repository.ResourceRepository;
 import com.miaostar.auditor.repository.RoleRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationListener;
+import org.springframework.context.MessageSource;
+import org.springframework.context.MessageSourceAware;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
@@ -16,16 +18,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
 @Service
 @Transactional
-public class RegisteredResourcesListener implements ApplicationListener<ContextRefreshedEvent> {
+public class RegisteredResourcesListener implements ApplicationListener<ContextRefreshedEvent>, MessageSourceAware {
 
     private RequestMappingHandlerMapping mapping;
 
@@ -33,12 +32,19 @@ public class RegisteredResourcesListener implements ApplicationListener<ContextR
 
     private RoleRepository roleRepository;
 
+    private MessageSource source;
+
     public RegisteredResourcesListener(RequestMappingHandlerMapping mapping,
                                        ResourceRepository resourceRepository,
                                        RoleRepository roleRepository) {
         this.mapping = mapping;
         this.resourceRepository = resourceRepository;
         this.roleRepository = roleRepository;
+    }
+
+    @Override
+    public void setMessageSource(MessageSource messageSource) {
+        this.source = messageSource;
     }
 
     @Override
@@ -94,7 +100,7 @@ public class RegisteredResourcesListener implements ApplicationListener<ContextR
                 "系统资源如下:{}",
                 resources.stream()
                         .sorted(Comparator.comparing(Resource::getCode))
-                        .map(resource -> String.format("[编号:%s,名称:%s]", resource.getCode(), resource.getName()))
+                        .map(resource -> source.getMessage("Resource.Details", new Object[]{resource.getCode(), resource.getName()}, Locale.getDefault()))
                         .collect(Collectors.joining(","))
         );
 

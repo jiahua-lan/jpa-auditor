@@ -3,6 +3,8 @@ package com.miaostar.auditor.service.impl;
 import com.miaostar.auditor.entity.Resource;
 import com.miaostar.auditor.repository.ClientRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.MessageSource;
+import org.springframework.context.MessageSourceAware;
 import org.springframework.context.annotation.Primary;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -14,18 +16,24 @@ import org.springframework.security.oauth2.provider.client.BaseClientDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Comparator;
+import java.util.Locale;
 import java.util.Set;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Slf4j
 @Service
 @Primary
 @Transactional
-public class ClientDetailsServiceImpl implements ClientDetailsService {
+public class ClientDetailsServiceImpl implements ClientDetailsService, MessageSourceAware {
 
     private PasswordEncoder encoder;
 
     private ClientRepository clientRepository;
+
+    private MessageSource source;
 
     public ClientDetailsServiceImpl(PasswordEncoder encoder, ClientRepository clientRepository) {
         this.encoder = encoder;
@@ -33,13 +41,28 @@ public class ClientDetailsServiceImpl implements ClientDetailsService {
     }
 
     @Override
+    public void setMessageSource(MessageSource messageSource) {
+        this.source = messageSource;
+    }
+
+    @Override
     public ClientDetails loadClientByClientId(String clientId) throws ClientRegistrationException {
 
         return clientRepository.findByClientId(clientId).map(client -> {
-            Set<GrantedAuthority> authorities = client.getAuthorities().stream()
+            Supplier<Stream<Resource>> supplier = () -> client.getAuthorities().stream();
+
+            Set<GrantedAuthority> authorities = supplier.get()
                     .map(Resource::getCode)
                     .map(SimpleGrantedAuthority::new)
                     .collect(Collectors.toSet());
+
+            log.debug(
+                    "客户端可访问资源如下:{}",
+                    supplier.get()
+                            .sorted(Comparator.comparing(Resource::getCode))
+                            .map(resource -> source.getMessage("Resource.Details", new Object[]{resource.getCode(), resource.getName()}, Locale.getDefault()))
+                            .collect(Collectors.joining(","))
+            );
 
             BaseClientDetails details = new BaseClientDetails();
             details.setClientId(client.getClientId());

@@ -1,6 +1,7 @@
 package com.miaostar.auditor.handler;
 
 import com.miaostar.auditor.entity.Document;
+import com.miaostar.auditor.exception.DocumentNotFoundException;
 import com.miaostar.auditor.repository.DocumentRepository;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
@@ -12,7 +13,6 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import java.net.URI;
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/documents")
@@ -35,8 +35,9 @@ public class DocumentHandler {
     @PreAuthorize("hasAuthority('D0002')")
     @GetMapping(name = "查找文档", value = "/{id}")
     public HttpEntity<?> find(@PathVariable Long id) {
-        Optional<Document> document = documentRepository.findById(id);
-        return ResponseEntity.of(document);
+        Document document = documentRepository.findById(id)
+                .orElseThrow(DocumentNotFoundException::new);
+        return ResponseEntity.ok(document);
     }
 
     @PreAuthorize("hasAuthority('D0003')")
@@ -51,13 +52,13 @@ public class DocumentHandler {
     @PreAuthorize("hasAuthority('D0004')")
     @PutMapping(name = "修改文档内容", value = "/{id}")
     public HttpEntity<?> replace(@Valid @RequestBody Document document, @PathVariable("id") Long id) {
-        Optional<Document> optional = documentRepository.findById(id)
+        Document optional = documentRepository.findById(id)
                 .map(doc -> {
                     doc.setContent(document.getContent());
                     doc.setTitle(document.getTitle());
                     return documentRepository.save(doc);
-                });
-        return ResponseEntity.of(optional);
+                }).orElseThrow(DocumentNotFoundException::new);
+        return ResponseEntity.ok(optional);
     }
 
     @PreAuthorize("hasAuthority('D0005')")
