@@ -1,7 +1,9 @@
 package com.miaostar.auditor.handler;
 
+import com.miaostar.auditor.entity.Role;
 import com.miaostar.auditor.entity.User;
 import com.miaostar.auditor.exception.UserNotFoundException;
+import com.miaostar.auditor.repository.RoleRepository;
 import com.miaostar.auditor.repository.UserRepository;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
@@ -20,8 +22,11 @@ public class UserHandler {
 
     private UserRepository userRepository;
 
-    public UserHandler(UserRepository userRepository) {
+    private RoleRepository roleRepository;
+
+    public UserHandler(UserRepository userRepository, RoleRepository roleRepository) {
         this.userRepository = userRepository;
+        this.roleRepository = roleRepository;
     }
 
     @PreAuthorize("hasAuthority('U0001')")
@@ -57,4 +62,27 @@ public class UserHandler {
         }).orElseThrow(UserNotFoundException::new);
         return ResponseEntity.ok(entity);
     }
+
+    @PreAuthorize("hasAuthority('U0005')")
+    @PostMapping(name = "分配用户角色", value = "/{id}/roles")
+    public HttpEntity<?> assignRoles(@RequestBody List<Long> ids, @PathVariable("id") Long id) {
+        User entity = userRepository.findById(id).map(user -> {
+            List<Role> roles = roleRepository.findAllById(ids);
+            user.getRoles().addAll(roles);
+            return userRepository.save(user);
+        }).orElseThrow(UserNotFoundException::new);
+        return ResponseEntity.ok(entity);
+    }
+
+    @PreAuthorize("hasAuthority('U0006')")
+    @DeleteMapping(name = "移除用户角色", value = "/{id}/roles")
+    public HttpEntity<?> removeRoles(@RequestBody List<Long> ids, @PathVariable("id") Long id) {
+        User entity = userRepository.findById(id).map(user -> {
+            List<Role> roles = roleRepository.findAllById(ids);
+            user.getRoles().removeAll(roles);
+            return userRepository.save(user);
+        }).orElseThrow(UserNotFoundException::new);
+        return ResponseEntity.ok(entity);
+    }
+
 }
