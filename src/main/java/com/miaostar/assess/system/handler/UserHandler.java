@@ -113,7 +113,7 @@ public class UserHandler {
     }
 
     @PreAuthorize("hasAuthority('U0008')")
-    @PostMapping(name = "从用户组中移除", value = "/{id}/groups")
+    @DeleteMapping(name = "从用户组中移除", value = "/{id}/groups")
     public HttpEntity<?> removeGroup(@RequestBody List<Long> ids, @PathVariable("id") Long id) {
         User entity = userRepository.findById(id).map(user -> {
             List<Group> groups = groupRepository.findAllById(ids);

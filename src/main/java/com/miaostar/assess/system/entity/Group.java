@@ -8,6 +8,7 @@ import org.springframework.data.jpa.domain.AbstractPersistable;
 import javax.persistence.Entity;
 import javax.persistence.ManyToMany;
 import javax.persistence.Table;
+import javax.validation.constraints.NotEmpty;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -24,11 +25,13 @@ public class Group extends AbstractPersistable<Long> {
     /**
      * 名称
      */
+    @NotEmpty(message = "{Group.name.NotEmpty}")
     private String name;
 
     /**
      * 编号
      */
+    @NotEmpty(message = "{Group.code.NotEmpty}")
     private String code;
 
     /**
