@@ -6,4 +6,4 @@ info:
     signingKey: "ASSESS"
 logging:
   level:
-    com.miaostar.security.service: debug
+    com.miaostar.assess.security: debug

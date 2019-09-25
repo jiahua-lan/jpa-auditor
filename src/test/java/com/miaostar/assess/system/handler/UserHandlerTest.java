@@ -1,20 +1,23 @@
 package com.miaostar.assess.system.handler;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.miaostar.assess.system.entity.User;
+import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.json.JacksonJsonParser;
+import org.springframework.boot.json.JsonParser;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultMatcher;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -87,11 +90,74 @@ public class UserHandlerTest {
     }
 
     @Test
-    public void findAll() {
+    public void findAll() throws Exception {
+        String token = getToken();
+
+        User user = new User();
+
+        byte[] bytes = mapper.writeValueAsBytes(user);
+
+        MockHttpServletRequestBuilder get = get("/users")
+                .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(bytes);
+
+        mock.perform(get)
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+        ;
     }
 
     @Test
-    public void replace() {
+    public void replace() throws Exception {
+        String token = getToken();
+
+        User probe = new User();
+
+        byte[] bytes = mapper.writeValueAsBytes(probe);
+
+        MockHttpServletRequestBuilder list = get("/users")
+                .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(bytes);
+
+        String content = mock.perform(list)
+                .andReturn().getResponse()
+                .getContentAsString();
+
+        JsonParser parser = new JacksonJsonParser();
+
+        parser.parseList(content).stream()
+                .findFirst()
+                .map(object -> mapper.convertValue(object, User.class))
+                .ifPresent(user -> {
+
+                    user.setUsername("TEST_USER_NAME");
+
+                    String body = "";
+                    try {
+                        body = mapper.writeValueAsString(user);
+                    } catch (JsonProcessingException e) {
+                        e.printStackTrace();
+                    }
+
+                    MockHttpServletRequestBuilder put = put("/users/" + user.getId())
+                            .header("Authorization", "Bearer " + token)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(body);
+
+                    try {
+                        ResultMatcher matcher = jsonPath("$.username")
+                                .value(Matchers.equalTo("TEST_USER_NAME"));
+                        mock.perform(put)
+                                .andDo(print())
+                                .andExpect(status().isOk())
+                                .andExpect(matcher);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                });
     }
 
     @Test

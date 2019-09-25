@@ -1,8 +1,10 @@
 package com.miaostar.assess.system.handler;
 
+import com.miaostar.assess.system.entity.Group;
 import com.miaostar.assess.system.entity.Role;
 import com.miaostar.assess.system.entity.User;
 import com.miaostar.assess.system.exception.UserNotFoundException;
+import com.miaostar.assess.system.repository.GroupRepository;
 import com.miaostar.assess.system.repository.RoleRepository;
 import com.miaostar.assess.system.repository.UserRepository;
 import org.springframework.data.domain.Example;
@@ -25,11 +27,17 @@ public class UserHandler {
 
     private RoleRepository roleRepository;
 
+    private GroupRepository groupRepository;
+
     private PasswordEncoder encoder;
 
-    public UserHandler(UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder encoder) {
+    public UserHandler(UserRepository userRepository,
+                       RoleRepository roleRepository,
+                       GroupRepository groupRepository,
+                       PasswordEncoder encoder) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
+        this.groupRepository = groupRepository;
         this.encoder = encoder;
     }
 
@@ -64,6 +72,8 @@ public class UserHandler {
     public HttpEntity<?> replace(@Valid @RequestBody User user, @PathVariable("id") Long id) {
         User entity = userRepository.findById(id).map(u -> {
             u.setUsername(user.getUsername());
+            u.setEnable(user.getEnable());
+            u.setLocked(user.getLocked());
             return userRepository.save(u);
         }).orElseThrow(UserNotFoundException::new);
         return ResponseEntity.ok(entity);
@@ -91,4 +101,32 @@ public class UserHandler {
         return ResponseEntity.ok(entity);
     }
 
+    @PreAuthorize("hasAuthority('U0007')")
+    @PostMapping(name = "加入用户组", value = "/{id}/groups")
+    public HttpEntity<?> addToGroup(@RequestBody List<Long> ids, @PathVariable("id") Long id) {
+        User entity = userRepository.findById(id).map(user -> {
+            List<Group> groups = groupRepository.findAllById(ids);
+            user.getGroups().addAll(groups);
+            return userRepository.save(user);
+        }).orElseThrow(UserNotFoundException::new);
+        return ResponseEntity.ok(entity);
+    }
+
+    @PreAuthorize("hasAuthority('U0008')")
+    @PostMapping(name = "从用户组中移除", value = "/{id}/groups")
+    public HttpEntity<?> removeGroup(@RequestBody List<Long> ids, @PathVariable("id") Long id) {
+        User entity = userRepository.findById(id).map(user -> {
+            List<Group> groups = groupRepository.findAllById(ids);
+            user.getGroups().removeAll(groups);
+            return userRepository.save(user);
+        }).orElseThrow(UserNotFoundException::new);
+        return ResponseEntity.ok(entity);
+    }
+
+    @PreAuthorize("hasAuthority('U0009')")
+    @DeleteMapping(name = "删除用户", value = "/{id}")
+    public HttpEntity<?> delete(@PathVariable("id") Long id) {
+        userRepository.deleteById(id);
+        return ResponseEntity.noContent().build();
+    }
 }
