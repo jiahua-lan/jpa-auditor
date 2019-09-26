@@ -126,7 +126,11 @@ public class UserHandler {
     @PreAuthorize("hasAuthority('U0009')")
     @DeleteMapping(name = "删除用户", value = "/{id}")
     public HttpEntity<?> delete(@PathVariable("id") Long id) {
-        userRepository.deleteById(id);
+        userRepository.findById(id).ifPresent(user -> {
+            user.getGroups().forEach(group -> group.getUsers().remove(user));
+            user.getRoles().forEach(role -> role.getUsers().remove(user));
+            userRepository.deleteById(id);
+        });
         return ResponseEntity.noContent().build();
     }
 }

@@ -1,6 +1,5 @@
 package com.miaostar.assess.system.handler;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.miaostar.assess.system.entity.User;
 import org.hamcrest.Matchers;
@@ -18,6 +17,7 @@ import org.springframework.test.web.servlet.ResultMatcher;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.log;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -58,11 +58,23 @@ public class UserHandlerTest {
 
         String token = getToken();
 
-        MockHttpServletRequestBuilder get = get("/users/1")
+        MockHttpServletRequestBuilder findAll = get("/users")
+                .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{}");
+
+        JsonParser parser = new JacksonJsonParser();
+
+        String content = mock.perform(findAll).andDo(log()).andReturn().getResponse().getContentAsString();
+
+        User user = parser.parseList(content).stream().findFirst()
+                .map(item -> mapper.convertValue(item, User.class)).orElseThrow(IllegalArgumentException::new);
+
+        MockHttpServletRequestBuilder get = get("/users/" + user.getId())
                 .header("Authorization", "Bearer " + token);
 
         mock.perform(get)
-                .andDo(print())
+                .andDo(log())
                 .andExpect(status().isOk());
     }
 
@@ -128,36 +140,25 @@ public class UserHandlerTest {
 
         JsonParser parser = new JacksonJsonParser();
 
-        parser.parseList(content).stream()
-                .findFirst()
-                .map(object -> mapper.convertValue(object, User.class))
-                .ifPresent(user -> {
+        User user = parser.parseList(content).stream().findFirst()
+                .map(item -> mapper.convertValue(item, User.class)).orElseThrow(IllegalArgumentException::new);
 
-                    user.setUsername("TEST_USER_NAME");
+        user.setUsername("TEST_USER_NAME");
 
-                    String body = "";
-                    try {
-                        body = mapper.writeValueAsString(user);
-                    } catch (JsonProcessingException e) {
-                        e.printStackTrace();
-                    }
+        String body = mapper.writeValueAsString(user);
 
-                    MockHttpServletRequestBuilder put = put("/users/" + user.getId())
-                            .header("Authorization", "Bearer " + token)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(body);
+        MockHttpServletRequestBuilder put = put("/users/" + user.getId())
+                .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body);
 
-                    try {
-                        ResultMatcher matcher = jsonPath("$.username")
-                                .value(Matchers.equalTo("TEST_USER_NAME"));
-                        mock.perform(put)
-                                .andDo(print())
-                                .andExpect(status().isOk())
-                                .andExpect(matcher);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                });
+        ResultMatcher matcher = jsonPath("$.username")
+                .value(Matchers.equalTo("TEST_USER_NAME"));
+
+        mock.perform(put)
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(matcher);
     }
 
     @Test

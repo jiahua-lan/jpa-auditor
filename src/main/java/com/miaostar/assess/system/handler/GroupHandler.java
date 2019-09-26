@@ -69,7 +69,11 @@ public class GroupHandler {
     @PreAuthorize("hasAuthority('G0005')")
     @DeleteMapping(name = "删除用户组", value = "/{id}")
     public HttpEntity<?> delete(@PathVariable("id") Long id) {
-        groupRepository.deleteById(id);
+        groupRepository.findById(id).ifPresent(group -> {
+            group.getResources().forEach(resource -> resource.getGroups().remove(group));
+            group.getUsers().forEach(user -> user.getGroups().remove(group));
+            groupRepository.deleteById(id);
+        });
         return ResponseEntity.noContent().build();
     }
 

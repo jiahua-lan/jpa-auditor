@@ -1,9 +1,13 @@
 spring:
   jpa:
     show-sql: true
+    hibernate:
+      ddl-auto: create-drop
+    generate-ddl: true
 info:
   token:
     signingKey: "ASSESS"
 logging:
   level:
     com.miaostar.assess.security: debug
+    org.springframework.test.web.servlet.result: debug
