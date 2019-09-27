@@ -54,8 +54,7 @@ public class UserHandlerTest {
     }
 
     @Test
-    public void find() throws Exception {
-
+    public void testFind() throws Exception {
         String token = getToken();
 
         MockHttpServletRequestBuilder findAll = get("/users")
@@ -65,7 +64,7 @@ public class UserHandlerTest {
 
         JsonParser parser = new JacksonJsonParser();
 
-        String content = mock.perform(findAll).andDo(log()).andReturn().getResponse().getContentAsString();
+        String content = mock.perform(findAll).andReturn().getResponse().getContentAsString();
 
         User user = parser.parseList(content).stream().findFirst()
                 .map(item -> mapper.convertValue(item, User.class)).orElseThrow(IllegalArgumentException::new);
@@ -79,7 +78,7 @@ public class UserHandlerTest {
     }
 
     @Test
-    public void create() throws Exception {
+    public void testCreate() throws Exception {
         String token = getToken();
 
         User user = new User();
@@ -102,7 +101,7 @@ public class UserHandlerTest {
     }
 
     @Test
-    public void findAll() throws Exception {
+    public void testFindAll() throws Exception {
         String token = getToken();
 
         User user = new User();
@@ -122,7 +121,7 @@ public class UserHandlerTest {
     }
 
     @Test
-    public void replace() throws Exception {
+    public void testReplace() throws Exception {
         String token = getToken();
 
         User probe = new User();
@@ -156,16 +155,63 @@ public class UserHandlerTest {
                 .value(Matchers.equalTo("TEST_USER_NAME"));
 
         mock.perform(put)
-                .andDo(print())
+                .andDo(log())
                 .andExpect(status().isOk())
                 .andExpect(matcher);
     }
 
     @Test
-    public void assignRoles() {
+    public void delete() {
     }
 
     @Test
-    public void removeRoles() {
+    public void testAssignRoles() {
+    }
+
+    @Test
+    public void userRoles() throws Exception {
+        String token = getToken();
+
+        User probe = new User();
+
+        byte[] bytes = mapper.writeValueAsBytes(probe);
+
+        MockHttpServletRequestBuilder findAll = get("/users")
+                .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(bytes);
+
+        JsonParser parser = new JacksonJsonParser();
+
+        String content = mock.perform(findAll).andReturn()
+                .getResponse().getContentAsString();
+
+        User user = parser.parseList(content).stream().findFirst()
+                .map(item -> mapper.convertValue(item, User.class))
+                .orElseThrow(IllegalArgumentException::new);
+
+        String path = String.format("/users/%d/roles", user.getId());
+
+        MockHttpServletRequestBuilder userRoles = get(path)
+                .header("Authorization", "Bearer " + token);
+
+        mock.perform(userRoles)
+                .andDo(log());
+    }
+
+    @Test
+    public void testRemoveRoles() {
+    }
+
+    @Test
+    public void userGroups() {
+    }
+
+    @Test
+    public void addToGroup() {
+    }
+
+    @Test
+    public void removeGroup() {
     }
 }
