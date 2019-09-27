@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import java.net.URI;
 import java.util.List;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/groups")
@@ -80,22 +81,30 @@ public class GroupHandler {
     @PreAuthorize("hasAuthority('G0006')")
     @PostMapping(name = "分配资源", value = "/{id}/resources")
     public HttpEntity<?> allocation(@RequestBody List<Long> ids, @PathVariable("id") Long id) {
-        Group entity = groupRepository.findById(id).map(group -> {
+        Set<Resource> currentResources = groupRepository.findById(id).map(group -> {
             List<Resource> resources = resourceRepository.findAllById(ids);
             group.getResources().addAll(resources);
             return groupRepository.save(group);
-        }).orElseThrow(GroupNotFoundException::new);
-        return ResponseEntity.ok(entity);
+        }).map(Group::getResources).orElseThrow(GroupNotFoundException::new);
+        return ResponseEntity.ok(currentResources);
     }
 
     @PreAuthorize("hasAuthority('G0007')")
     @DeleteMapping(name = "移除资源", value = "/{id}/resources")
     public HttpEntity<?> remove(@RequestBody List<Long> ids, @PathVariable("id") Long id) {
-        Group entity = groupRepository.findById(id).map(group -> {
+        Set<Resource> currentResources = groupRepository.findById(id).map(group -> {
             List<Resource> resources = resourceRepository.findAllById(ids);
             group.getResources().removeAll(resources);
             return groupRepository.save(group);
-        }).orElseThrow(GroupNotFoundException::new);
-        return ResponseEntity.ok(entity);
+        }).map(Group::getResources).orElseThrow(GroupNotFoundException::new);
+        return ResponseEntity.ok(currentResources);
+    }
+
+    @PreAuthorize("hasAuthority('G0008')")
+    @GetMapping(name = "资源列表", value = "/{id}/resources")
+    public HttpEntity<?> list(@PathVariable("id") Long id) {
+        Set<Resource> resources = groupRepository.findById(id)
+                .map(Group::getResources).orElseThrow(GroupNotFoundException::new);
+        return ResponseEntity.ok(resources);
     }
 }

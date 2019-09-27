@@ -56,7 +56,7 @@ public class GroupHandlerTest {
     }
 
     @Test
-    public void find() throws Exception {
+    public void testFind() throws Exception {
         //0.准备阶段：获取token
         String token = getToken();
 
@@ -89,7 +89,7 @@ public class GroupHandlerTest {
     }
 
     @Test
-    public void findAll() throws Exception {
+    public void testFindAll() throws Exception {
         //准备阶段：获取Token，构建请求
         String token = getToken();
 
@@ -110,7 +110,7 @@ public class GroupHandlerTest {
     }
 
     @Test
-    public void create() throws Exception {
+    public void testCreate() throws Exception {
         //准备阶段：获取Token，构建请求
         String token = getToken();
 
@@ -132,7 +132,7 @@ public class GroupHandlerTest {
     }
 
     @Test
-    public void replace() throws Exception {
+    public void testReplace() throws Exception {
         //准备阶段：获取Token，获取用户组列表，并取得第一位的用户组
         String token = getToken();
 
@@ -171,7 +171,7 @@ public class GroupHandlerTest {
     }
 
     @Test
-    public void delete() throws Exception {
+    public void testDelete() throws Exception {
         //准备阶段：获取Token，获取用户组列表，并取得第一位的用户组
         String token = getToken();
 
@@ -203,10 +203,40 @@ public class GroupHandlerTest {
     }
 
     @Test
-    public void allocation() {
+    public void testAllocation() {
     }
 
     @Test
-    public void remove() {
+    public void testRemove() {
+    }
+
+    @Test
+    public void list() throws Exception {
+        String token = getToken();
+
+        MockHttpServletRequestBuilder get = get("/groups")
+                .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{}");
+
+        JsonParser parser = new JacksonJsonParser();
+
+        String content = mock.perform(get).andDo(log()).andReturn().getResponse().getContentAsString();
+
+        Group group = parser.parseList(content).stream()
+                .findFirst()
+                .map(item -> mapper.convertValue(item, Group.class))
+                .orElseThrow(IllegalArgumentException::new);
+
+
+        String uri = String.format("/groups/%d/resources", group.getId());
+
+        MockHttpServletRequestBuilder list = get(uri)
+                .header("Authorization", "Bearer " + token);
+
+        mock.perform(list)
+                .andDo(log())
+                .andExpect(jsonPath("$").isArray())
+        ;
     }
 }
