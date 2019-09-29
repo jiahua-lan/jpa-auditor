@@ -79,7 +79,7 @@ public class GroupHandler {
     }
 
     @PreAuthorize("hasAuthority('G0006')")
-    @PostMapping(name = "分配资源", value = "/{id}/resources")
+    @PostMapping(name = "分配用户组资源", value = "/{id}/resources")
     public HttpEntity<?> allocation(@RequestBody List<Long> ids, @PathVariable("id") Long id) {
         Set<Resource> currentResources = groupRepository.findById(id).map(group -> {
             List<Resource> resources = resourceRepository.findAllById(ids);
@@ -90,7 +90,7 @@ public class GroupHandler {
     }
 
     @PreAuthorize("hasAuthority('G0007')")
-    @DeleteMapping(name = "移除资源", value = "/{id}/resources")
+    @DeleteMapping(name = "移除用户组资源", value = "/{id}/resources")
     public HttpEntity<?> remove(@RequestBody List<Long> ids, @PathVariable("id") Long id) {
         Set<Resource> currentResources = groupRepository.findById(id).map(group -> {
             List<Resource> resources = resourceRepository.findAllById(ids);

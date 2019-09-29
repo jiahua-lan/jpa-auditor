@@ -1,18 +1,16 @@
 package com.miaostar.assess.system.handler;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.miaostar.assess.system.entity.Group;
+import com.miaostar.assess.test.BasicHandlerTest;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.json.JacksonJsonParser;
 import org.springframework.boot.json.JsonParser;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
@@ -24,21 +22,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @RunWith(SpringRunner.class)
 @AutoConfigureMockMvc
 @SpringBootTest
-public class GroupHandlerTest {
-
-    private MockMvc mock;
-
-    private ObjectMapper mapper;
-
-    @Autowired
-    public void setMock(MockMvc mock) {
-        this.mock = mock;
-    }
-
-    @Autowired
-    public void setMapper(ObjectMapper mapper) {
-        this.mapper = mapper;
-    }
+public class GroupHandlerTest extends BasicHandlerTest {
 
     /**
      * 获取Token
@@ -50,7 +34,7 @@ public class GroupHandlerTest {
                 .param("client_secret", "123456")
                 .param("username", "lan")
                 .param("password", "123456");
-        String content = mock.perform(post).andReturn().getResponse().getContentAsString();
+        String content = getMock().perform(post).andReturn().getResponse().getContentAsString();
         JacksonJsonParser parser = new JacksonJsonParser();
         return parser.parseMap(content).get("access_token").toString();
     }
@@ -63,26 +47,26 @@ public class GroupHandlerTest {
         //1.获取用户组列表，并取得第一位的用户组
         Group probe = new Group();
 
-        byte[] value = mapper.writeValueAsBytes(probe);
+        byte[] value = getMapper().writeValueAsBytes(probe);
 
         MockHttpServletRequestBuilder findAll = get("/groups")
                 .header("Authorization", "Bearer " + token)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(value);
 
-        String content = mock.perform(findAll).andReturn().getResponse().getContentAsString();
+        String content = getMock().perform(findAll).andReturn().getResponse().getContentAsString();
 
         JsonParser parser = new JacksonJsonParser();
 
         Group group = parser.parseList(content).stream().findFirst()
-                .map(item -> mapper.convertValue(item, Group.class))
+                .map(item -> getMapper().convertValue(item, Group.class))
                 .orElseThrow(IllegalArgumentException::new);
 
         //测试开始
         MockHttpServletRequestBuilder get = get("/groups/" + group.getId())
                 .header("Authorization", "Bearer " + token);
 
-        mock.perform(get)
+        getMock().perform(get)
                 .andDo(log())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(Matchers.equalTo(group.getId())));
@@ -95,7 +79,7 @@ public class GroupHandlerTest {
 
         Group group = new Group();
 
-        byte[] bytes = mapper.writeValueAsBytes(group);
+        byte[] bytes = getMapper().writeValueAsBytes(group);
 
         MockHttpServletRequestBuilder get = get("/groups")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -103,7 +87,7 @@ public class GroupHandlerTest {
                 .header("Authorization", "Bearer " + token);
 
         //开始测试
-        mock.perform(get)
+        getMock().perform(get)
                 .andDo(log())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray());
@@ -118,14 +102,14 @@ public class GroupHandlerTest {
         group.setName("TEST_GROUP");
         group.setCode("T0001");
 
-        byte[] bytes = mapper.writeValueAsBytes(group);
+        byte[] bytes = getMapper().writeValueAsBytes(group);
 
         MockHttpServletRequestBuilder post = post("/groups")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(bytes)
                 .header("Authorization", "Bearer " + token);
         //开始测试
-        mock.perform(post)
+        getMock().perform(post)
                 .andDo(log())
                 .andExpect(status().is2xxSuccessful())
                 .andExpect(jsonPath("$.id").isNotEmpty());
@@ -138,25 +122,25 @@ public class GroupHandlerTest {
 
         Group probe = new Group();
 
-        byte[] value = mapper.writeValueAsBytes(probe);
+        byte[] value = getMapper().writeValueAsBytes(probe);
 
         MockHttpServletRequestBuilder get = get("/groups")
                 .header("Authorization", "Bearer " + token)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(value);
 
-        String content = mock.perform(get).andReturn().getResponse().getContentAsString();
+        String content = getMock().perform(get).andReturn().getResponse().getContentAsString();
 
         JsonParser parser = new JacksonJsonParser();
 
         Group group = parser.parseList(content).stream().findFirst()
-                .map(item -> mapper.convertValue(item, Group.class))
+                .map(item -> getMapper().convertValue(item, Group.class))
                 .orElseThrow(IllegalArgumentException::new);
 
         //修改用户组的备注
         group.setRemark("REPLACE");
 
-        byte[] bytes = mapper.writeValueAsBytes(group);
+        byte[] bytes = getMapper().writeValueAsBytes(group);
 
         MockHttpServletRequestBuilder put = put("/groups/" + group.getId())
                 .contentType(MediaType.APPLICATION_JSON)
@@ -164,7 +148,7 @@ public class GroupHandlerTest {
                 .header("Authorization", "Bearer " + token);
 
         //发送请求
-        mock.perform(put)
+        getMock().perform(put)
                 .andDo(log())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.remark").value(Matchers.equalTo("REPLACE")));
@@ -182,11 +166,11 @@ public class GroupHandlerTest {
 
         JsonParser parser = new JacksonJsonParser();
 
-        String content = mock.perform(get).andDo(log()).andReturn().getResponse().getContentAsString();
+        String content = getMock().perform(get).andDo(log()).andReturn().getResponse().getContentAsString();
 
         Group group = parser.parseList(content).stream()
                 .findFirst()
-                .map(item -> mapper.convertValue(item, Group.class))
+                .map(item -> getMapper().convertValue(item, Group.class))
                 .orElseThrow(IllegalArgumentException::new);
 
         //构建请求
@@ -194,12 +178,12 @@ public class GroupHandlerTest {
                 .header("Authorization", "Bearer " + token);
 
         //开始测试
-        mock.perform(delete)
+        getMock().perform(delete)
                 .andDo(log())
                 .andExpect(status().isNoContent());
 
         //完成后的验证
-        mock.perform(get).andDo(log());
+        getMock().perform(get).andDo(log());
     }
 
     @Test
@@ -221,11 +205,11 @@ public class GroupHandlerTest {
 
         JsonParser parser = new JacksonJsonParser();
 
-        String content = mock.perform(get).andDo(log()).andReturn().getResponse().getContentAsString();
+        String content = getMock().perform(get).andDo(log()).andReturn().getResponse().getContentAsString();
 
         Group group = parser.parseList(content).stream()
                 .findFirst()
-                .map(item -> mapper.convertValue(item, Group.class))
+                .map(item -> getMapper().convertValue(item, Group.class))
                 .orElseThrow(IllegalArgumentException::new);
 
 
@@ -234,7 +218,7 @@ public class GroupHandlerTest {
         MockHttpServletRequestBuilder list = get(uri)
                 .header("Authorization", "Bearer " + token);
 
-        mock.perform(list)
+        getMock().perform(list)
                 .andDo(log())
                 .andExpect(jsonPath("$").isArray())
         ;
