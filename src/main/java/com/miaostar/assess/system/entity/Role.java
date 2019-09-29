@@ -8,6 +8,7 @@ import org.springframework.data.jpa.domain.AbstractPersistable;
 import javax.persistence.Entity;
 import javax.persistence.ManyToMany;
 import javax.persistence.Table;
+import javax.validation.constraints.NotEmpty;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -24,11 +25,13 @@ public class Role extends AbstractPersistable<Long> {
     /**
      * 角色名称
      */
+    @NotEmpty(message = "{Role.name.NotEmpty}")
     private String name;
 
     /**
      * 角色编号
      */
+    @NotEmpty(message = "{Role.code.NotEmpty}")
     private String code;
 
     /**

@@ -1,18 +1,16 @@
 package com.miaostar.assess.system.handler;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.miaostar.assess.system.entity.User;
+import com.miaostar.assess.test.BasicHandlerTest;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.json.JacksonJsonParser;
 import org.springframework.boot.json.JsonParser;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultMatcher;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
@@ -25,34 +23,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @RunWith(SpringRunner.class)
 @AutoConfigureMockMvc
 @SpringBootTest
-public class UserHandlerTest {
-
-    private ObjectMapper mapper;
-
-    private MockMvc mock;
-
-    @Autowired
-    public void setMapper(ObjectMapper mapper) {
-        this.mapper = mapper;
-    }
-
-    @Autowired
-    public void setMock(MockMvc mock) {
-        this.mock = mock;
-    }
-
-    public String getToken() throws Exception {
-        MockHttpServletRequestBuilder post = post("/oauth/token")
-                .param("grant_type", "password")
-                .param("client_id", "client")
-                .param("client_secret", "123456")
-                .param("username", "lan")
-                .param("password", "123456");
-        String content = mock.perform(post).andReturn().getResponse().getContentAsString();
-        JacksonJsonParser parser = new JacksonJsonParser();
-        return parser.parseMap(content).get("access_token").toString();
-    }
-
+public class UserHandlerTest extends BasicHandlerTest {
+    
     @Test
     public void testFind() throws Exception {
         String token = getToken();
@@ -64,15 +36,15 @@ public class UserHandlerTest {
 
         JsonParser parser = new JacksonJsonParser();
 
-        String content = mock.perform(findAll).andReturn().getResponse().getContentAsString();
+        String content = getMock().perform(findAll).andReturn().getResponse().getContentAsString();
 
         User user = parser.parseList(content).stream().findFirst()
-                .map(item -> mapper.convertValue(item, User.class)).orElseThrow(IllegalArgumentException::new);
+                .map(item -> getMapper().convertValue(item, User.class)).orElseThrow(IllegalArgumentException::new);
 
         MockHttpServletRequestBuilder get = get("/users/" + user.getId())
                 .header("Authorization", "Bearer " + token);
 
-        mock.perform(get)
+        getMock().perform(get)
                 .andDo(log())
                 .andExpect(status().isOk());
     }
@@ -85,14 +57,14 @@ public class UserHandlerTest {
         user.setUsername("TEST");
         user.setPassword("123456");
 
-        byte[] bytes = mapper.writeValueAsBytes(user);
+        byte[] bytes = getMapper().writeValueAsBytes(user);
 
         MockHttpServletRequestBuilder post = post("/users")
                 .header("Authorization", "Bearer " + token)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(bytes);
 
-        mock.perform(post)
+        getMock().perform(post)
                 .andDo(print())
                 .andExpect(status().is2xxSuccessful())
                 .andExpect(jsonPath("$.id").isNumber())
@@ -106,14 +78,14 @@ public class UserHandlerTest {
 
         User user = new User();
 
-        byte[] bytes = mapper.writeValueAsBytes(user);
+        byte[] bytes = getMapper().writeValueAsBytes(user);
 
         MockHttpServletRequestBuilder get = get("/users")
                 .header("Authorization", "Bearer " + token)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(bytes);
 
-        mock.perform(get)
+        getMock().perform(get)
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
@@ -126,25 +98,25 @@ public class UserHandlerTest {
 
         User probe = new User();
 
-        byte[] bytes = mapper.writeValueAsBytes(probe);
+        byte[] bytes = getMapper().writeValueAsBytes(probe);
 
         MockHttpServletRequestBuilder list = get("/users")
                 .header("Authorization", "Bearer " + token)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(bytes);
 
-        String content = mock.perform(list)
+        String content = getMock().perform(list)
                 .andReturn().getResponse()
                 .getContentAsString();
 
         JsonParser parser = new JacksonJsonParser();
 
         User user = parser.parseList(content).stream().findFirst()
-                .map(item -> mapper.convertValue(item, User.class)).orElseThrow(IllegalArgumentException::new);
+                .map(item -> getMapper().convertValue(item, User.class)).orElseThrow(IllegalArgumentException::new);
 
         user.setUsername("TEST_USER_NAME");
 
-        String body = mapper.writeValueAsString(user);
+        String body = getMapper().writeValueAsString(user);
 
         MockHttpServletRequestBuilder put = put("/users/" + user.getId())
                 .header("Authorization", "Bearer " + token)
@@ -154,7 +126,7 @@ public class UserHandlerTest {
         ResultMatcher matcher = jsonPath("$.username")
                 .value(Matchers.equalTo("TEST_USER_NAME"));
 
-        mock.perform(put)
+        getMock().perform(put)
                 .andDo(log())
                 .andExpect(status().isOk())
                 .andExpect(matcher);
@@ -174,7 +146,7 @@ public class UserHandlerTest {
 
         User probe = new User();
 
-        byte[] bytes = mapper.writeValueAsBytes(probe);
+        byte[] bytes = getMapper().writeValueAsBytes(probe);
 
         MockHttpServletRequestBuilder findAll = get("/users")
                 .header("Authorization", "Bearer " + token)
@@ -183,11 +155,11 @@ public class UserHandlerTest {
 
         JsonParser parser = new JacksonJsonParser();
 
-        String content = mock.perform(findAll).andReturn()
+        String content = getMock().perform(findAll).andReturn()
                 .getResponse().getContentAsString();
 
         User user = parser.parseList(content).stream().findFirst()
-                .map(item -> mapper.convertValue(item, User.class))
+                .map(item -> getMapper().convertValue(item, User.class))
                 .orElseThrow(IllegalArgumentException::new);
 
         String path = String.format("/users/%d/roles", user.getId());
@@ -195,7 +167,7 @@ public class UserHandlerTest {
         MockHttpServletRequestBuilder userRoles = get(path)
                 .header("Authorization", "Bearer " + token);
 
-        mock.perform(userRoles)
+        getMock().perform(userRoles)
                 .andDo(log());
     }
 
