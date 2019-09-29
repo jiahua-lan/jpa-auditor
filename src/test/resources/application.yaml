@@ -5,6 +5,12 @@ spring:
       ddl-auto: create-drop
     generate-ddl: true
 info:
+  security:
+    username: "lan"
+    password: "123456"
+    clientId: "client"
+    clientSecret: "123456"
+    grantType: "password"
   token:
     signingKey: "ASSESS"
 logging:
