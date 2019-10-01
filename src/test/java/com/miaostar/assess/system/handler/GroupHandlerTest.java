@@ -24,21 +24,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 public class GroupHandlerTest extends BasicHandlerTest {
 
-    /**
-     * 获取Token
-     */
-    public String getToken() throws Exception {
-        MockHttpServletRequestBuilder post = post("/oauth/token")
-                .param("grant_type", "password")
-                .param("client_id", "client")
-                .param("client_secret", "123456")
-                .param("username", "lan")
-                .param("password", "123456");
-        String content = getMock().perform(post).andReturn().getResponse().getContentAsString();
-        JacksonJsonParser parser = new JacksonJsonParser();
-        return parser.parseMap(content).get("access_token").toString();
-    }
-
     @Test
     public void testFind() throws Exception {
         //0.准备阶段：获取token
@@ -69,7 +54,8 @@ public class GroupHandlerTest extends BasicHandlerTest {
         getMock().perform(get)
                 .andDo(log())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(Matchers.equalTo(group.getId())));
+                .andExpect(jsonPath("$.id").isNumber())
+                .andExpect(jsonPath("$.id").value(Matchers.equalTo(group.getId()), Long.class));
     }
 
     @Test

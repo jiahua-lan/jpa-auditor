@@ -46,7 +46,9 @@ public class RoleHandlerHandlerTest extends BasicHandlerTest {
 
         getMock().perform(find)
                 .andDo(log())
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").isNumber())
+                .andExpect(jsonPath("$.id").value(Matchers.equalTo(role.getId()), Long.class));
 
     }
 
